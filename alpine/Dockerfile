@@ -47,14 +47,17 @@ ARG RESTY_CONFIG_OPTIONS="\
     --with-stream \
     --with-stream_ssl_module \
     --with-threads \
+    --add-module=ngx_http_proxy_connect_module \
     "
 ARG RESTY_CONFIG_OPTIONS_MORE=""
 ARG RESTY_LUAJIT_OPTIONS="--with-luajit-xcflags='-DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT'"
 
-ARG RESTY_ADD_PACKAGE_BUILDDEPS=""
+ARG RESTY_ADD_PACKAGE_BUILDDEPS="git patch"
 ARG RESTY_ADD_PACKAGE_RUNDEPS=""
 ARG RESTY_EVAL_PRE_CONFIGURE=""
 ARG RESTY_EVAL_POST_MAKE=""
+
+LABEL NGX_HTTP_PROXY_CONNECT_MODULE_VERSION="b41a20b6cb4e38a5cf30369f9a58f1e9d1ff97fc"
 
 # These are not intended to be user-specified
 ARG _RESTY_CONFIG_DEPS="--with-pcre \
@@ -137,6 +140,9 @@ RUN apk add --no-cache --virtual .build-deps \
     && curl -fSL https://openresty.org/download/openresty-${RESTY_VERSION}.tar.gz -o openresty-${RESTY_VERSION}.tar.gz \
     && tar xzf openresty-${RESTY_VERSION}.tar.gz \
     && cd /tmp/openresty-${RESTY_VERSION} \
+    && git clone https://github.com/chobits/ngx_http_proxy_connect_module \
+    && git -C ngx_http_proxy_connect_module/ reset --hard ${NGX_HTTP_PROXY_CONNECT_MODULE_VERSION} \
+    && patch -d bundle/nginx-1.15.8/ -p1 < ngx_http_proxy_connect_module/patch/proxy_connect_rewrite_101504.patch  \
     && eval ./configure -j${RESTY_J} ${_RESTY_CONFIG_DEPS} ${RESTY_CONFIG_OPTIONS} ${RESTY_CONFIG_OPTIONS_MORE} ${RESTY_LUAJIT_OPTIONS} \
     && make -j${RESTY_J} \
     && make -j${RESTY_J} install \
