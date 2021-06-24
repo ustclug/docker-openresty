@@ -12,6 +12,7 @@ LABEL maintainer="Evan Wies <evan@neomantra.net>"
 ARG RESTY_IMAGE_BASE="alpine"
 ARG RESTY_IMAGE_TAG="3.13"
 ARG RESTY_VERSION="1.19.3.2"
+ARG NGINX_VERSION="1.19.3"
 ARG RESTY_OPENSSL_VERSION="1.1.1k"
 ARG RESTY_OPENSSL_PATCH_VERSION="1.1.1f"
 ARG RESTY_OPENSSL_URL_BASE="https://www.openssl.org/source"
@@ -142,7 +143,7 @@ RUN apk add --no-cache --virtual .build-deps \
     && cd /tmp/openresty-${RESTY_VERSION} \
     && git clone https://github.com/chobits/ngx_http_proxy_connect_module \
     && git -C ngx_http_proxy_connect_module/ reset --hard ${NGX_HTTP_PROXY_CONNECT_MODULE_VERSION} \
-    && patch -d bundle/nginx-1.15.8/ -p1 < ngx_http_proxy_connect_module/patch/proxy_connect_rewrite_101504.patch  \
+    && patch -d bundle/nginx-${NGINX_VERSION}/ -p1 < ngx_http_proxy_connect_module/patch/proxy_connect_rewrite_101504.patch  \
     && eval ./configure -j${RESTY_J} ${_RESTY_CONFIG_DEPS} ${RESTY_CONFIG_OPTIONS} ${RESTY_CONFIG_OPTIONS_MORE} ${RESTY_LUAJIT_OPTIONS} \
     && make -j${RESTY_J} \
     && make -j${RESTY_J} install \
